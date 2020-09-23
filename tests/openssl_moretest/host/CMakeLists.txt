@@ -19,14 +19,10 @@ target_compile_options(openssl_moretest_host PRIVATE -Wno-unused-parameter)
 target_include_directories(
   openssl_moretest_host
   PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+          ${OPENSSL_DIR}
+          ${OPENSSL_DIR}/include
+          ${CMAKE_BINARY_DIR}/3rdparty/openssl/build/include
           ${CMAKE_CURRENT_SOURCE_DIR}
           ${CMAKE_CURRENT_SOURCE_DIR}/../include
-          ${CMAKE_CURRENT_SOURCE_DIR}/../common_code
-          ${OPENSSL_DIR}/include
-          ${OPENSSL_DIR}/crypto/x509
-          ${OPENSSL_DIR}/crypto/rsa
-          ${OPENSSL_DIR}/crypto/bn
-          ${OPENSSL_DIR}/crypto/evp
-          ${OPENSSL_DIR}/crypto/hmac
-          ${CMAKE_BINARY_DIR}/3rdparty/openssl/build/include)
+          ${CMAKE_CURRENT_SOURCE_DIR}/../common_code)
 target_link_libraries(openssl_moretest_host oehost)

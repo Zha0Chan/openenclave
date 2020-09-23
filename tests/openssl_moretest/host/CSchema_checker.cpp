@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include "common.h"
-
 #include "CSchema_checker.h"
 #include "include_openssl.h"
 
@@ -31,7 +29,7 @@ CSchemaChecker::CSchemaChecker(t_openssl_schema* schema, uint schema_size)
 }
 CSchemaChecker::~CSchemaChecker()
 {
-    CleanupParm();
+    CleanUpParams();
 
     if (m_schema)
         delete[] m_schema;
@@ -47,7 +45,7 @@ void CSchemaChecker::randomize_api_param(openssl_api_param* p)
         return;
 
     t_openssl_schema* api_schema = &m_schema[m_schema_idx];
-    for (int i = 0; i < OPENSSL_MAX_PARM; i++)
+    for (int i = 0; i < OPENSSL_MAX_PARAMETER_COUNT; i++)
     {
         buffer = p->p[i];
         type = api_schema->type[i];
@@ -56,7 +54,7 @@ void CSchemaChecker::randomize_api_param(openssl_api_param* p)
 
         if (SSL_FIXLEN(type))
         {
-            len = api_schema->len[i];
+            len = api_schema->length[i];
             for (size_t j = 0; j < len; j++)
                 buffer[j] = (char)(rand());
             OverideRandomizedValue(
@@ -85,7 +83,7 @@ void CSchemaChecker::copy_api_param(
     t_openssl_schema* api_schema = &m_schema[m_schema_idx];
 
     assert(p1->id == p2->id);
-    for (int i = 0; i < OPENSSL_MAX_PARM; i++)
+    for (int i = 0; i < OPENSSL_MAX_PARAMETER_COUNT; i++)
     {
         char* b1 = p1->p[i];
         char* b2 = p2->p[i];
@@ -96,7 +94,7 @@ void CSchemaChecker::copy_api_param(
 
         if (SSL_FIXLEN(type))
         {
-            len = api_schema->len[i];
+            len = api_schema->length[i];
 
             p2->p[i] = new char[len];
             b2 = p2->p[i];
@@ -131,7 +129,7 @@ int CSchemaChecker::SetupParams(openssl_api_id id, uint schema_id)
     m_api_id = id;
     m_p1.id = m_p2.id = id;
     m_schema_idx = schema_id;
-    if (allocate_api_parm(&m_p1))
+    if (allocate_api_param(&m_p1))
     {
         printf(
             "in openssl_checker::SetupParams() Parameter allocation failure - "
@@ -183,7 +181,7 @@ int CSchemaChecker::allocate_varlen(
     {
         printf(
             "Error: allocating %d bytes for paramter %d in "
-            "openssl_checker::allocate_api_parm of api %d (%s)\n",
+            "openssl_checker::allocate_api_param of api %d (%s)\n",
             (int)len,
             param_index,
             m_api_id,
@@ -193,7 +191,7 @@ int CSchemaChecker::allocate_varlen(
     return (int)len;
 }
 
-int CSchemaChecker::allocate_api_parm(openssl_api_param* p)
+int CSchemaChecker::allocate_api_param(openssl_api_param* p)
 {
     uint64_t type;
     size_t len;
@@ -205,7 +203,7 @@ int CSchemaChecker::allocate_api_parm(openssl_api_param* p)
         return 0;
     t_openssl_schema* api_schema = &m_schema[m_schema_idx];
     p->id = m_api_id;
-    for (int i = 0; i < OPENSSL_MAX_PARM; i++)
+    for (int i = 0; i < OPENSSL_MAX_PARAMETER_COUNT; i++)
     {
         type = api_schema->type[i];
         if (!SSL_VALID(type))
@@ -213,14 +211,14 @@ int CSchemaChecker::allocate_api_parm(openssl_api_param* p)
 
         if (SSL_FIXLEN(type))
         {
-            len = api_schema->len[i];
+            len = api_schema->length[i];
             p->p[i] = new char[len];
 
             if (NULL == p->p[i])
             {
                 printf(
                     "Error: allocating %zu bytes for paramter %d in "
-                    "openssl_checker::allocate_api_parm of api %d (%s)\n",
+                    "openssl_checker::allocate_api_param of api %d (%s)\n",
                     len,
                     i,
                     m_api_id,
@@ -234,7 +232,7 @@ int CSchemaChecker::allocate_api_parm(openssl_api_param* p)
         }
     }
     int check_duplicate_slen[MAX_VAR_LEN_VALUES] = {0};
-    for (int i = 0; i < OPENSSL_MAX_PARM; i++)
+    for (int i = 0; i < OPENSSL_MAX_PARAMETER_COUNT; i++)
     {
         type = api_schema->type[i];
         if (!SSL_VALID(type))
@@ -260,7 +258,7 @@ int CSchemaChecker::allocate_api_parm(openssl_api_param* p)
     return 0;
 }
 
-int CSchemaChecker::free_api_parm(openssl_api_param* p)
+int CSchemaChecker::free_api_param(openssl_api_param* p)
 {
     // for 1 api - free params
     if (!m_schema)
@@ -269,7 +267,7 @@ int CSchemaChecker::free_api_parm(openssl_api_param* p)
 
     uint64_t type;
 
-    for (int i = 0; i < OPENSSL_MAX_PARM; i++)
+    for (int i = 0; i < OPENSSL_MAX_PARAMETER_COUNT; i++)
     {
         if (NULL == p->p[i])
             return 1;
@@ -280,11 +278,8 @@ int CSchemaChecker::free_api_parm(openssl_api_param* p)
 
         if (SSL_FIXLEN(type) || SSL_VARLEN_X(type))
         {
-            // printf("T%d  api %d (%s) param %d(VARLEN or FIXLEN): delete[] in
-            // openssl_checker::free_api_parm\n",1,m_api_id,"apiname",i);
             delete[] p->p[i];
             p->p[i] = NULL;
-            // break;
         }
     }
     return 0;
@@ -352,10 +347,10 @@ int compare_evp_md_ctx(char* p1, char* p2, size_t len, int fips)
     return 0;
 }
 
-int CSchemaChecker::CleanupParm()
+int CSchemaChecker::CleanUpParams()
 {
     int ret = 0;
-    ret = free_api_parm(&m_p1);
-    ret = free_api_parm(&m_p2);
+    ret = free_api_param(&m_p1);
+    ret = free_api_param(&m_p2);
     return 0;
 }

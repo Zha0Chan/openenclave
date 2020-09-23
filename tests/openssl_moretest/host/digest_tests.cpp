@@ -2,13 +2,12 @@
 // Licensed under the MIT License.
 
 #include <openenclave/internal/tests.h>
+#include <openssl/e_os2.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "common.h"
 #include "CSchema_checker.h"
 #include "include_openssl.h"
-#include "openssl/e_os2.h"
 #include "openssl_moretest_u.h"
 #include "openssl_schema.h"
 
@@ -201,32 +200,11 @@ t_openssl_schema _openssl_digest[] = {
      {_Neg, _Neg, _Neg, _Neg, _Neg},
      {0, 0, 0, 0, 0}},
 
-    {"RAND_bytes",
-     e_Rand_bytes,
-     2,
-     {_Neg, sizeof(int), _Neg, _Neg, _Neg},
-     {S_VARLEN_O | S_RAND | S_CMP_RAND, S_LEN, 0, 0, 0}},
     {"SSLeay_version",
      e_SSLeay_version,
      2,
      {sizeof(int), _ELLEPH, _Neg, _Neg, _Neg},
      {S_FIXLEN_IO | S_RAND, S_FIXLEN_O, 0, 0, 0}},
-    {"SSL_alert_type_string_long",
-     e_SSL_alert_type_string_l,
-     2,
-     {sizeof(int), _ELLEPH, _Neg, _Neg, _Neg},
-     {S_FIXLEN_IO | S_RAND, S_FIXLEN_O, 0, 0, 0}},
-    {"SSL_alert_desc_string_long",
-     e_SSL_alert_desc_string_l,
-     2,
-     {sizeof(int), _ELLEPH, _Neg, _Neg, _Neg},
-     {S_FIXLEN_IO | S_RAND, S_FIXLEN_O, 0, 0, 0}},
-
-    {"CRYPTO_THREADID_set_numeric",
-     e_CRYPTO_THREADID_set_numeric,
-     3,
-     {sizeof(int), sizeof(int), sizeof(CRYPTO_THREADID), _Neg, _Neg},
-     {S_FIXLEN_IO | S_RAND, S_FIXLEN_IO | S_RAND, S_FIXLEN_IO | S_RAND, 0, 0}},
 
     {"EVP_EncodeInit",
      e_EVP_EncodeInit,
@@ -235,27 +213,6 @@ t_openssl_schema _openssl_digest[] = {
      {S_FIXLEN_IO | S_RAND, 0, 0, 0, 0, 0, 0, 0, 0}},
     {"EVP_EncodeUpdate",
      e_EVP_EncodeUpdate,
-     5,
-     {sizeof(EVP_ENCODE_CTX),
-      _Neg,
-      sizeof(size_t),
-      _Neg,
-      sizeof(size_t),
-      _Neg,
-      _Neg,
-      _Neg,
-      _Neg},
-     {S_FIXLEN_IO | S_RAND,
-      S_VARLEN_I | S_RAND,
-      S_LEN,
-      S_VARLEN_I | S_RAND,
-      S_FIXLEN_IO,
-      0,
-      0,
-      0,
-      0}},
-    {"EVP_EncodeFinal",
-     e_EVP_EncodeFinal,
      5,
      {sizeof(EVP_ENCODE_CTX),
       _Neg,

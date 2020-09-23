@@ -18,8 +18,8 @@ struct random_buffer
     char* buffer;
     int first;
     size_t size;
-    size_t native_indx;
-    size_t encl_indx;
+    size_t native_index;
+    size_t enclave_index;
     int delta;
     unsigned int tid;
 };
@@ -46,26 +46,23 @@ class CSchemaChecker
     int EnablebackEnclaveRandomInjection();
 
     // schema methods
-    virtual int allocate_api_parm(openssl_api_param* p);
-    virtual int free_api_parm(openssl_api_param* p);
+    virtual int allocate_api_param(openssl_api_param* p);
+    virtual int free_api_param(openssl_api_param* p);
     virtual void randomize_api_param(openssl_api_param* p);
     virtual void copy_api_param(openssl_api_param* p2, openssl_api_param* p1);
     virtual int check_openssl(openssl_api_param* p1, openssl_api_param* p2);
     virtual int SetupParams(openssl_api_id id, uint schema_id);
-    virtual int CleanupParm();
+    virtual int CleanUpParams();
     const char* GetApiName(int schema_id);
     openssl_api_id GetApiId(int idx);
     virtual void OverideRandomizedValue(
         openssl_api_id id,
-        uint param_no,
+        uint param_number,
         uint64_t type,
         uint origin,
         unsigned char* buf,
         uint buflen)
     {
-        UNUSED(id);
-        UNUSED(param_no);
-        UNUSED(origin);
         if (SSL_VARLEN(type) && (buflen == sizeof(size_t)))
         {
             size_t v = *(size_t*)buf;

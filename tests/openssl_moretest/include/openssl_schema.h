@@ -1,10 +1,10 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
-#ifndef __OPEN_SSL_SCHEMA_H__
-#define __OPEN_SSL_SCHEMA_H__
+#ifndef __OPENSSL_SCHEMA_H__
+#define __OPENSSL_SCHEMA_H__
 
-#define OPENSSL_MAX_PARM 9
+#define OPENSSL_MAX_PARAMETER_COUNT 9
 #define MAX_VAR_LEN_VALUES 2
 
 // flags describing parameter attributes
@@ -69,12 +69,10 @@ typedef enum
     e_sha1_init = 0,
     e_sha1_update,
     e_sha1_final,
-    //
     // SHA256
     e_sha256_init,
     e_sha256_update,
     e_sha256_final,
-    //
     // EVP
     e_EVP_Sha256,
     e_EVP_Sha384,
@@ -156,15 +154,15 @@ typedef struct openssl_schema
 {
     char api_name[MAX_API_NAME];
     openssl_api_id id;
-    int num_of_parm;
-    size_t len[OPENSSL_MAX_PARM];
-    uint64_t type[OPENSSL_MAX_PARM];
+    int parameter_count;
+    size_t length[OPENSSL_MAX_PARAMETER_COUNT];
+    uint64_t type[OPENSSL_MAX_PARAMETER_COUNT];
 } t_openssl_schema;
 
 struct openssl_api_param
 {
     openssl_api_id id;
-    char* p[OPENSSL_MAX_PARM];
+    char* p[OPENSSL_MAX_PARAMETER_COUNT];
 };
 
 #endif

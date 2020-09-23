@@ -205,7 +205,7 @@ static size_t serialize_ASN1_OBJECT(char* b, ASN1_OBJECT* obj)
 
 static int _test_pkcs7_sign(openssl_api_param* p, int info)
 {
-    int ret;
+    int ret = 0;
     EVP_PKEY* pkey = NULL;
     PKCS7* p7 = NULL;
     RSA* rsa = NULL;
@@ -217,15 +217,20 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
 
     // build the key
     pkey = EVP_PKEY_new();
+    if (NULL == pkey)
+        goto Exit;
     rsa = RSA_new();
+    if (NULL == rsa)
+        goto Exit;
     set_key(rsa, ctext_ex);
     ret = EVP_PKEY_assign_RSA(pkey, rsa);
     if (1 != ret)
         goto Exit;
-    //
 
     // build certificate
     x509 = X509_new();
+    if (NULL == x509)
+        goto Exit;
     ASN1_INTEGER_set(X509_get_serialNumber(x509), 1);
     X509_gmtime_adj(X509_get_notBefore(x509), 0);
     X509_gmtime_adj(X509_get_notAfter(x509), 31536000L);
@@ -238,7 +243,6 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
     X509_NAME_add_entry_by_txt(
         name, "CN", MBSTRING_ASC, (unsigned char*)"localhost", -1, -1, 0);
     X509_sign(x509, pkey, EVP_md5());
-    //
 
     in_bio = BIO_new_mem_buf((void*)p->p[0], *(int*)&(p->p[1]));
     BIO_get_mem_ptr(in_bio, &y);
@@ -262,7 +266,6 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
             ret = 0;
         }
 
-        //
         // serialize partially the sinfos object in order to compare in checker
         int num = sk_PKCS7_SIGNER_INFO_num(sinfos);
         size_t total = 0;
@@ -280,8 +283,6 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
                 buffer + total, sitmp->digest_alg->algorithm);
             total += serialize_ASN1_OBJECT(
                 buffer + total, sitmp->digest_enc_alg->algorithm);
-            //			total += serialize_ASN1_OCTET_STRING(buffer+total,
-            // sitmp->enc_digest);
         }
     }
     else if (_pkcs7_sign == info)
@@ -289,6 +290,8 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
         size_t len;
         // write signature to buffer
         out_bio = BIO_new(BIO_s_mem());
+        if (NULL == out_bio)
+            goto Exit;
         ret = SMIME_write_PKCS7(out_bio, p7, in_bio, 0);
         if (1 != ret)
         {
@@ -305,6 +308,8 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
         STACK_OF(X509)* chain = NULL;
 
         chain = sk_X509_new_null();
+        if (NULL == chain)
+            goto Exit;
         sk_X509_push(chain, x509);
         ret = PKCS7_verify(p7, chain, NULL, NULL, NULL, PKCS7_NOVERIFY);
         sk_X509_pop(chain);
@@ -313,6 +318,8 @@ static int _test_pkcs7_sign(openssl_api_param* p, int info)
     else
     {
         X509_STORE* store = X509_STORE_new();
+        if (NULL == store)
+            goto Exit;
         X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
 
         ret = X509_STORE_add_cert(lookup->store_ctx, x509);
@@ -477,7 +484,11 @@ int common_digest_tests(void* buf)
                     break;
 
                 pkey = EVP_PKEY_new();
+                if (NULL == pkey)
+                    goto Exit;
                 rsa = RSA_new();
+                if (NULL == rsa)
+                    goto Exit;
                 set_key(rsa, ctext_ex);
 
                 ret = EVP_PKEY_assign_RSA(pkey, rsa);
@@ -540,7 +551,11 @@ int common_digest_tests(void* buf)
                     break;
 
                 pkey = EVP_PKEY_new();
+                if (NULL == pkey)
+                    goto Exit;
                 rsa = RSA_new();
+                if (NULL == rsa)
+                    goto Exit;
                 set_key(rsa, ctext_ex);
 
                 ret = EVP_PKEY_assign_RSA(pkey, rsa);
@@ -563,8 +578,6 @@ int common_digest_tests(void* buf)
             case e_PKCS7_sign:
                 ret = _test_pkcs7_sign(p, _pkcs7_sign);
                 break;
-            case e_PKCS7_sign_add_signer:
-                break;
             case e_PKCS7_get_signer_info:
                 ret = _test_pkcs7_sign(p, _pkcs7_get_info);
                 break;
@@ -577,26 +590,12 @@ int common_digest_tests(void* buf)
                 ret = Create_EVP_MD_CTX();
                 break;
             }
-            case e_Rand_bytes:
-                break;
             case e_SSLeay_version:
             {
                 int type = *((int*)p->p[0]) % 10;
                 const char* version = SSLeay_version(type);
                 if (SSLEAY_VERSION_NUMBER == type || SSLEAY_PLATFORM == type)
                     _scpy(p->p[1], version);
-                break;
-            }
-            case e_SSL_alert_type_string_l:
-            {
-                break;
-            }
-            case e_SSL_alert_desc_string_l:
-            {
-                break;
-            }
-            case e_CRYPTO_THREADID_set_numeric:
-            {
                 break;
             }
             case e_X509_STORE_add_cert:
@@ -619,10 +618,6 @@ int common_digest_tests(void* buf)
                 const unsigned char* in = (const unsigned char*)p->p[3];
                 EVP_EncodeUpdate(ctx, out, &outl, in, inl);
                 ret = outl;
-            }
-            break;
-            case e_EVP_EncodeFinal:
-            {
             }
             break;
             case e_EVP_DecodeInit:
@@ -657,6 +652,8 @@ int common_digest_tests(void* buf)
             case e_EVP_DecodeFinal:
             {
                 BIO* my_bio = BIO_new(BIO_s_mem());
+                if (NULL == my_bio)
+                    goto Exit;
                 unsigned char* buf = (unsigned char*)p->p[1];
                 int buflen = *(int*)&(p->p[2]);
                 buflen = (int)(buflen * 0.7);

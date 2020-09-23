@@ -29,16 +29,11 @@ enclave_compile_options(
 enclave_include_directories(
   openssl_moretest_enc
   PRIVATE
-  ${OPENSSL_DIR}/../..
+  ${OPENSSL_DIR}
+  ${OPENSSL_DIR}/include
   ${CMAKE_BINARY_DIR}/3rdparty/openssl/build/include
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/..
   ${CMAKE_CURRENT_SOURCE_DIR}/../common_code
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include
-  ${OPENSSL_DIR}/include
-  ${OPENSSL_DIR}/crypto/x509
-  ${OPENSSL_DIR}/crypto/rsa
-  ${OPENSSL_DIR}/crypto/bn
-  ${OPENSSL_DIR}/crypto/evp
-  ${OPENSSL_DIR}/crypto/hmac)
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 enclave_link_libraries(openssl_moretest_enc oelibc openssl)
