@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <new>
 
 #include "CSchema_checker.h"
 #include "include_openssl.h"
@@ -17,7 +18,8 @@ CSchemaChecker::CSchemaChecker(t_openssl_schema* schema, uint schema_size)
     memset(m_p2.p, 0, sizeof(m_p2.p));
     if (schema)
     {
-        m_schema = (t_openssl_schema*)new t_openssl_schema[schema_size];
+        m_schema =
+            (t_openssl_schema*)new (std::nothrow) t_openssl_schema[schema_size];
         if (!m_schema)
             throw "Error allocating schema in CSchemaChecker constructor";
 
@@ -96,7 +98,7 @@ void CSchemaChecker::copy_api_param(
         {
             len = api_schema->length[i];
 
-            p2->p[i] = new char[len];
+            p2->p[i] = new (std::nothrow) char[len];
             b2 = p2->p[i];
             assert(NULL != b2);
             memcpy(b2, b1, len);
@@ -104,7 +106,7 @@ void CSchemaChecker::copy_api_param(
         else if (SSL_VARLEN_X(type))
         {
             len = (size_t)m_varlen_values[SSL_WHICH_VARLEN(type)];
-            p2->p[i] = new char[len];
+            p2->p[i] = new (std::nothrow) char[len];
             assert(NULL != p2->p[i]);
             b2 = p2->p[i];
             memcpy(b2, b1, len);
@@ -176,7 +178,7 @@ int CSchemaChecker::allocate_varlen(
     }
     else
         len = m_varlen_values[varlen_index];
-    p->p[param_index] = new char[len];
+    p->p[param_index] = new (std::nothrow) char[len];
     if (NULL == p->p[param_index])
     {
         printf(
@@ -212,7 +214,7 @@ int CSchemaChecker::allocate_api_param(openssl_api_param* p)
         if (SSL_FIXLEN(type))
         {
             len = api_schema->length[i];
-            p->p[i] = new char[len];
+            p->p[i] = new (std::nothrow) char[len];
 
             if (NULL == p->p[i])
             {
