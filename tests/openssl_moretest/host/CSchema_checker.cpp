@@ -27,7 +27,7 @@ CSchemaChecker::CSchemaChecker(t_openssl_schema* schema, uint schema_size)
             m_schema[i] = schema[i];
     }
     else
-        m_schema = NULL;
+        m_schema = nullptr;
 }
 CSchemaChecker::~CSchemaChecker()
 {
@@ -100,7 +100,7 @@ void CSchemaChecker::copy_api_param(
 
             p2->p[i] = new (std::nothrow) char[len];
             b2 = p2->p[i];
-            assert(NULL != b2);
+            assert(b2);
             memcpy(b2, b1, len);
         }
         else if (SSL_VARLEN_X(type))
@@ -179,7 +179,7 @@ int CSchemaChecker::allocate_varlen(
     else
         len = m_varlen_values[varlen_index];
     p->p[param_index] = new (std::nothrow) char[len];
-    if (NULL == p->p[param_index])
+    if (!p->p[param_index])
     {
         printf(
             "Error: allocating %d bytes for paramter %d in "
@@ -216,7 +216,7 @@ int CSchemaChecker::allocate_api_param(openssl_api_param* p)
             len = api_schema->length[i];
             p->p[i] = new (std::nothrow) char[len];
 
-            if (NULL == p->p[i])
+            if (!p->p[i])
             {
                 printf(
                     "Error: allocating %zu bytes for paramter %d in "
@@ -271,7 +271,7 @@ int CSchemaChecker::free_api_param(openssl_api_param* p)
 
     for (int i = 0; i < OPENSSL_MAX_PARAMETER_COUNT; i++)
     {
-        if (NULL == p->p[i])
+        if (!p->p[i])
             return 1;
 
         type = api_schema->type[i];
@@ -281,7 +281,7 @@ int CSchemaChecker::free_api_param(openssl_api_param* p)
         if (SSL_FIXLEN(type) || SSL_VARLEN_X(type))
         {
             delete[] p->p[i];
-            p->p[i] = NULL;
+            p->p[i] = nullptr;
         }
     }
     return 0;

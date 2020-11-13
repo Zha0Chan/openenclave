@@ -10,12 +10,12 @@
 extern int common_digest_tests(void* buf);
 void ecall_set_rdrand_engine()
 {
-    ENGINE* eng = NULL;
+    ENGINE* eng = nullptr;
 
     /* Initialize and opt-in the RDRAND engine. */
     ENGINE_load_rdrand();
     eng = ENGINE_by_id("rdrand");
-    if (eng == NULL)
+    if (!eng)
     {
         goto done;
     }
